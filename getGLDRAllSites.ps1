@@ -1,0 +1,71 @@
+<#
+Legal Disclaimer
+This script is an example script and is not supported by any means.
+The author further disclaim all implied warranties including, 
+without limitation, any implied warranties of merchantability 
+or of fitness for a particular purpose.
+In no event shall  its authors or anyone else involved in 
+the creation, production or delivery of the scripts be liable for 
+any damages whatsoever 
+(including, without limitation, damages for loss of business profits, business interruption, 
+loss of business information, or other pecuniary loss) arising out of the use of or the inability 
+to use the sample scripts or documentation, 
+even if the author  has been advised of the possibility of such damages. 
+The entire risk arising out of the use or performance of the sample scripts 
+and documentation remains with you.
+#>
+
+<#
+The Author is Loompas0 who is a pseudo.
+The source site of the code couldbe https://github.com/loompas0/ 
+if you are explicitely or implicitely authorized to access to it.
+#>
+
+<#This script has been tested on a Windows environment#>
+
+# History 
+# - 10/05/2023 creation and first tests
+
+# ==============================================================
+
+# Use the Connection script called "Connect-DSCC-Secret.ps1"
+# This file should be located in the same Directory as this script
+
+# use json file to connect to all sites
+. ./Connect-DSCC-Secret.ps1
+# Now that we have a token because of successfull DSCC authentication, we can proceed with GLDR REST API calls
+# First prepare the environnement
+$GldrApiBase = "/disaster-recovery/v1beta1/"
+$GldrUriBase = $Base+$GldrApiBase # $Base is a global variable used in the powershell module # ConnectDscc
+$Auth= $Token.Access_Token
+
+# Api call to GLR
+
+$request = @{
+
+    Headers     = @{
+        ContentType  = "application/json"
+        Authorization = "Bearer $Auth"
+    }
+
+    StatusCodeVariable = "statusCode"
+
+    Method      = "GET"
+    URI = $GldrUriBase + "virtual-sites"
+   
+
+}
+# Invoke the Api Call
+try {
+    $result = Invoke-RestMethod @request
+}
+catch {
+    Write-Error "Error making API call to GLDR" -ErrorAction Stop
+}
+
+
+# Show the result in json format
+$resultJson = ConvertTo-Json $result
+ write-output $resultJson
+# Write the result in a Json formatted file calles GLDRAllSites.Json
+Set-Content -Path './GLDRAllsites.json' $resultJson
