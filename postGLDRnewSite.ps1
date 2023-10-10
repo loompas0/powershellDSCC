@@ -24,7 +24,7 @@ if you are explicitely or implicitely authorized to access to it.
 <#This script has been tested on a Windows environment#>
 
 # History 
-# - 10/05/2023 creation and first tests
+# - 10/10/2023 creation and first tests
 
 # ==============================================================
 
@@ -37,38 +37,35 @@ if you are explicitely or implicitely authorized to access to it.
 # First prepare the environnement
 $GldrApiBase = "/disaster-recovery/v1beta1/"
 $GldrUriBase = $Base+$GldrApiBase # $Base is a global variable used in the powershell module # ConnectDscc
-$Auth= $Token.Access_Token
+$Auth = $Token.Access_Token
+#read the serial number from ZVM management GUI
+$SerialNumber = Read-Host -Prompt "Please Enter the serial Number copied from ZVM You want to attach"
 
-# Api call to GLR
-
-$request = @{
-
-    Headers     = @{
-        ContentType  = "application/json"
-        Authorization = "Bearer $Auth"
-    }
-
-    StatusCodeVariable = "statusCode"
-
-    Method      = "GET"
-    URI = $GldrUriBase + "virtual-sites"
-   
-
+$Headers = @{
+    "Content-Type"  = "application/json"
+    Authorization = "Bearer $Auth"
+    Accept = "application/json"
 }
-# Invoke the Api Call
+$Body = 
+"{
+`"serialNumber`": `"{$SerialNumber}`"
+}"
+$UriApi = $GldrUriBase + "virtual-sites"
+# Api call to GLDR
 try {
-    $result = Invoke-RestMethod @request
+    $result = Invoke-RestMethod -Uri $UriApi  -Headers $Headers -Method Post -Body $Body 
 }
 catch {
     Write-Error "Error making API call to GLDR" -ErrorAction Stop
 }
 
-
 # Show the result in json format
 $resultJson = ConvertTo-Json $result
  write-output $resultJson
+<#
  # Write the result in a Json formatted file calles GLDRAllSites.Json
 Set-Content -Path './GLDRAllsites.json' $resultJson
  # Show some information in more readeable format. as a table
 Write-Host "All sites visbible in GLDR are : " -ForegroundColor Yellow
  $result.items  | Select-Object id , name, networkAddress, type, version,connected | format-table 
+ #>
