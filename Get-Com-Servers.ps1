@@ -35,11 +35,10 @@ if you are explicitely or implicitely authorized to access to it.
 . ./Connect-COM-Secret.ps1
 # Now that we have a token because of successfull COM authentication, we can proceed with REST API calls
 # First prepare the environnement
-$Region = $Region+"-central1-api."
-$Application = "compute"
-$ConnectivityEndpoint = "https://$Region$Application.cloud.hpe.com"
-$ConnectivityUri = "/compute-ops/v1beta2"
-$ConnectivityObject = "/servers"
+$ConnectivityEndPoint = $ComEndpoint
+$ConnectivityUri = "/compute-ops/v1beta2/servers?offset=0&limit=100"
+$headers = @{}
+$headers["Authorization"] = "Bearer $AccessToken"
 
 
 # Api call to GLR
@@ -51,7 +50,7 @@ $request = @{
     StatusCodeVariable = "statusCode"
 
     Method      = "GET"
-    URI = $ConnectivityEndpoint + $ConnectivityUri + $ConnectivityObject
+    URI = $ConnectivityEndpoint + $ConnectivityUri
    
 
 }
@@ -71,7 +70,6 @@ $resultJson = ConvertTo-Json $result
 Set-Content -Path './ComServers.json' $resultJson
  # Show some information in more readeable format. as a table
 
- <#
-Write-Host "All sites visbible in GLDR are : " -ForegroundColor Yellow
- $result.items  | Select-Object id , name, networkAddress, type, version,connected | format-table 
-#>
+
+Write-Host "All Servers  visbible in Com are : " -ForegroundColor Yellow
+ $result.items.hardware  | Select-Object serialNumber , model, productId | format-table 

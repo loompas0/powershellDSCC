@@ -44,15 +44,15 @@ if you are explicitely or implicitely authorized to access to it.
 }
 #>
 
-$ApiFile = Get-Content -path .\ApiUser.json -Raw | ConvertFrom-Json -ErrorAction Stop
+$ApiFile = Get-Content -path .\ApiUserCom.json -Raw | ConvertFrom-Json -ErrorAction Stop
 
-$Region = $ApiFile.DsccRegion
-$ClientID = $ApiFile.DsccClientID
-$ClientSecret = $ApiFile.DsccClientSecret
+$ComEndpoint = $ApiFile.ComEndpoint
+$ComClientID= $ApiFile.ComClientID
+$ComClientSecret = $ApiFile.ComClientSecret
 
 # Print Region and client ID Just for verification that the file was read correctly
-Write-Host "The region is : $Region" -ForegroundColor Magenta
-Write-Host "The Client ID is : $ClientID" -ForegroundColor Magenta
+Write-Host "The Enpoint  is : $ComEndpoint" -ForegroundColor Magenta
+Write-Host "The Client ID is : $ComClientId" -ForegroundColor Magenta
 
 #lets get connect to DSCC in order to receive a Token
 
@@ -61,11 +61,11 @@ $headers = @{}
 $headers["Content-Type"] = "application/x-www-form-urlencoded"
 
 # Payload creation
-$body = "grant_type=client_credentials&client_id=" + $ClientID + "&client_secret=" + $ClientSecret
+$body = "grant_type=client_credentials&client_id=" + $ComClientID + "&client_secret=" + $ComClientSecret
 
 
 try {
-  $response = Invoke-webrequest "https://sso.common.cloud.hpe.com/as/token.oauth2" -Method POST -Headers $headers -Body $body
+  $ComToken  = Invoke-RestMethod -URI "https://sso.common.cloud.hpe.com/as/token.oauth2" -Method POST -Headers $headers -Body $body
 }
 catch {
   write-host "Authentication error !" $error[0].Exception.Message -ForegroundColor Red
@@ -73,11 +73,11 @@ catch {
 
 
 # Capturing API Access Token
-$AccessToken = ($response.Content  | Convertfrom-Json).access_token
+$AccessToken = $ComToken.access_token
 
 # Headers creation
-$headers = @{} 
-$headers["Authorization"] = "Bearer $AccessToken"
+# $headers = @{} 
+# $headers["Authorization"] = "Bearer $AccessToken"
 
 
 # Print the token could be usefull to test some direct rest api calls
